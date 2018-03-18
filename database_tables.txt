@@ -1,0 +1,6 @@
+CREATE TABLE prediction (
+  id INTEGER PRIMARY KEY,
+  text VARCHAR,
+  predicted VARCHAR,
+  actual VARCHAR
+)

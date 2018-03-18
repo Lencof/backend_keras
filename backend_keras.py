@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import Flask, request
 from flask_restful import Resource, Api
-from sqlalchemy import create_engine
+import sqlalchemy
 from json import dumps
 from flask_jsonpify import jsonify
 from keras.models import load_model
@@ -21,7 +21,7 @@ def load_obj(name):
 
 app = Flask(__name__)
 api = Api(app)
-db_connect = create_engine('sqlite:////home/sovietspy2/PycharmProjects/backend_keras/database.db')
+db_connect = sqlalchemy.create_engine('sqlite:////home/sovietspy2/PycharmProjects/backend_keras/database.db')
 model = load_model("/home/sovietspy2/PycharmProjects/backend_keras/model2.h5")
 max_sentence_length = 200
 vocab_to_int = load_obj('/home/sovietspy2/PycharmProjects/backend_keras/vocab_to_int')
@@ -50,7 +50,22 @@ class Prediction(Resource):
     def get(self):
         conn = db_connect.connect() # connect to database
         query = conn.execute("select * from prediction")
-        return {'prediction': [i[0] for i in query.cursor.fetchall()]}
+        result = query.cursor.fetchall()
+        print(result)
+
+        rows = []
+
+        for i in range(0,len(result)):
+            nn = list(result[i])
+            #rows.append(
+            print(nn)
+            rows.append({ 'id':nn[0], 'text':nn[1], 'prediction': nn[2], 'valid pred': nn[3] })
+
+        data = {
+            'data': rows
+        }
+
+        return jsonify(data)
 
 
 class Predict(Resource):
@@ -60,11 +75,11 @@ class Predict(Resource):
 
             result = {'data': {
                 'text': text,
-                'language': to_long_lang(ret),
+                'language': ret,
             }}
 
             conn = db_connect.connect()
-            conn.execute("insert into prediction (text, predicted, actual) VALUES ({0}, {1}, NULL)".format(text, ret))
+            conn.execute("insert into prediction (text, predicted, actual) VALUES ('{0}', '{1}', NULL)".format(text, ret))
 
         else:
             result = {
@@ -86,7 +101,7 @@ class ValidPredict(Resource):
             }}
 
             conn = db_connect.connect()
-            conn.execute("insert into prediction (text, predicted, actual) VALUES ({0}, {1}, {1})".format(text, ret,to_long_lang(valid)))
+            conn.execute("insert into prediction (text, predicted, actual) VALUES ('{0}', '{1}', '{2}')".format(text, ret,to_long_lang(valid)))
 
 
         else:
@@ -95,9 +110,9 @@ class ValidPredict(Resource):
             }
         return jsonify(result)
 
-api.add_resource(Prediction, '/list') # Route_1
-api.add_resource(Predict, '/p/<text>') # Route_1
-api.add_resource(ValidPredict, '/pvalid/<text>') # Route_1
+api.add_resource(Prediction, '/list')
+api.add_resource(Predict, '/p/<text>')
+api.add_resource(ValidPredict, '/pvalid/<text>')
 
 def convert_to_int(data, data_int):
 
