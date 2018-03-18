@@ -49,8 +49,8 @@ def to_long_lang(text):
 class Prediction(Resource):
     def get(self):
         conn = db_connect.connect() # connect to database
-        query = conn.execute("select * from prediction") # This line performs query and returns json result
-        return {'prediction': [i[0] for i in query.cursor.fetchall()]} # Fetches first column that is Employee ID
+        query = conn.execute("select * from prediction")
+        return {'prediction': [i[0] for i in query.cursor.fetchall()]}
 
 
 class Predict(Resource):
@@ -100,10 +100,7 @@ api.add_resource(Predict, '/p/<text>') # Route_1
 api.add_resource(ValidPredict, '/pvalid/<text>') # Route_1
 
 def convert_to_int(data, data_int):
-    """Converts all our text to integers
-    :param data: The text to be converted
-    :return: All sentences in ints
-    """
+
     all_items = []
     for sentence in data:
         all_items.append([data_int[word] if word in data_int else data_int["<UNK>"] for word in str(sentence).split()])
@@ -111,35 +108,23 @@ def convert_to_int(data, data_int):
     return all_items
 
 def process_sentence(sentence):
-    '''Removes all special characters from sentence. It will also strip out
-    extra whitespace and makes the string lowercase.
-    '''
+
     return re.sub('[^A-Za-z0-9]+', ' ', sentence).lower().strip()
 
 def predict_sentence(sentence):
-    """Converts the text and sends it to the model for classification
-    :param sentence: The text to predict
-    :return: string - The language of the sentence
-    """
 
-    # Clean the sentence
     sentence = process_sentence(sentence)
 
-    # Transform and pad it before using the model to predict
     x = numpy.array(convert_to_int([sentence], vocab_to_int))
-    #print("numpy array: ", x)
     x = sequence.pad_sequences(x, maxlen=max_sentence_length)
 
     prediction = model.predict(x)
-    print(int_to_languages)
-    print(prediction)
+    #print(int_to_languages)
+    #print(prediction)
 
-    # Get the highest prediction
     lang_index = numpy.argmax(prediction)
 
     return int_to_languages[lang_index]
-
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8888)
