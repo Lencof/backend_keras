@@ -26,11 +26,17 @@ model = load_model("/home/sovietspy2/PycharmProjects/backend_keras/model2.h5")
 max_sentence_length = 200
 vocab_to_int = load_obj('/home/sovietspy2/PycharmProjects/backend_keras/vocab_to_int')
 int_to_languages = load_obj('/home/sovietspy2/PycharmProjects/backend_keras/int_to_languages')
-
+@app.after_request
 
 @app.route('/')
 def hello_world():
     return 'backend api running'
+
+def after_request(response):
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+  return response
 
 
 def to_long_lang(text):
