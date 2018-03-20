@@ -26,7 +26,7 @@ def load_obj(name):
 
 app = Flask(__name__)
 api = Api(app)
-CORS(app)
+cors = CORS(app, resources={r'/*': {'origins':'*'}})
 app.config['JSON_AS_ASCII'] = False
 db_connect = sqlalchemy.create_engine('sqlite:////home/sovietspy2/PycharmProjects/backend_keras/database.db')
 model = load_model("/home/sovietspy2/PycharmProjects/backend_keras/model2.h5")
@@ -35,9 +35,18 @@ vocab_to_int = load_obj('/home/sovietspy2/PycharmProjects/backend_keras/vocab_to
 int_to_languages = load_obj('/home/sovietspy2/PycharmProjects/backend_keras/int_to_languages')
 
 
+
 @app.route('/')
 def hello_world():
     return render_template('template.html', my_string="Wheeeee!", my_list=[0, 1, 2, 3, 4, 5])
+
+@app.after_request
+
+def after_request(response):
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+  return response
 
 
 def to_long_lang(text):
