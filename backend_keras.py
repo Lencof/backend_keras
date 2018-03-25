@@ -119,7 +119,7 @@ class ValidPredict(Resource):
 
             conn = db_connect.connect()
             conn.execute(
-                "insert into prediction (text, predicted, actual) VALUES ('{0}', '{1}', '{2}')".format(text, ret,
+                "insert into prediction (text, predicted, actual) VALUES ('{0}', '{1}', '{2}')".format(process_sentence(text), ret,
                                                                                                        to_long_lang(
                                                                                                            valid)))
 
@@ -147,8 +147,11 @@ def convert_to_int(data, data_int):
 
 
 def process_sentence(sentence):
-    return re.sub('[^A-Za-z0-9]+', ' ', sentence).lower().strip()
-
+    new_sentence = []
+    for word in sentence.split():
+      new_word = ''.join(e for e in word if e.isalnum())
+      new_sentence.append(new_word)
+    return (' '.join(word for word in new_sentence)).rstrip()
 
 def predict_sentence(sentence):
     sentence = process_sentence(sentence)
