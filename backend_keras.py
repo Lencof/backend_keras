@@ -96,7 +96,7 @@ class Predict(Resource):
 
             conn = db_connect.connect()
             conn.execute(
-                "insert into prediction (text, predicted, actual) VALUES ('{0}', '{1}', NULL)".format(text, ret))
+                "insert into prediction (text, predicted, actual) VALUES ('{0}', '{1}', NULL)".format(process_sentence(text), ret))
 
         else:
             result = {
