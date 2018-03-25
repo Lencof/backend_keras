@@ -1,22 +1,13 @@
-from flask import Flask
 from flask import Flask, request
 from flask_restful import Resource, Api
 import sqlalchemy
-from json import dumps
 from flask_jsonpify import jsonify
 from keras.models import load_model
-from keras import backend as K
-from os import environ
 from keras.preprocessing import sequence
 import numpy
 import re
 import pickle
-from sys import stdin
-from flask import json
 from langdetect import detect
-from flask import render_template
-from flask_cors import CORS
-from flask import Response
 
 
 def load_obj(name):
@@ -26,8 +17,6 @@ def load_obj(name):
 
 app = Flask(__name__)
 api = Api(app)
-cors = CORS(app, resources={r'/*': {'origins':'*'}})
-app.config['JSON_AS_ASCII'] = False
 db_connect = sqlalchemy.create_engine('sqlite:////home/sovietspy2/PycharmProjects/backend_keras/database.db')
 model = load_model("/home/sovietspy2/PycharmProjects/backend_keras/model2.h5")
 max_sentence_length = 200
@@ -36,24 +25,11 @@ int_to_languages = load_obj('/home/sovietspy2/PycharmProjects/backend_keras/int_
 @app.after_request
 
 
-@app.route('/')
-def hello_world():
-    return render_template('template.html', my_string="Wheeeee!", my_list=[0, 1, 2, 3, 4, 5])
-
-@app.after_request
-
 def after_request(response):
   response.headers.add('Access-Control-Allow-Origin', '*')
   response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
   response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
   return response
-
-def after_request(response):
-  response.headers.add('Access-Control-Allow-Origin', '*')
-  response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
-  return response
-
 
 def to_long_lang(text):
     if text == 'en':
@@ -65,13 +41,13 @@ def to_long_lang(text):
     elif text == 'hu':
         return 'hungarian'
     else:
-        return 'err'
+        return 'undefinied language'
 
 
 class Prediction(Resource):
     def get(self):
         conn = db_connect.connect()  # connect to database
-        query = conn.execute("select * from prediction WHERE ROWID < 11 ORDER BY publish_date ASC")
+        query = conn.execute("select * from prediction ORDER BY publish_date DESC LIMIT 8")
         result = query.cursor.fetchall()
         print(result)
 
@@ -81,7 +57,7 @@ class Prediction(Resource):
             nn = list(result[i])
             # rows.append(
             print(nn)
-            rows.append({'id': nn[0], 'text': nn[1], 'prediction': nn[2], 'valid pred': nn[3], 'publish_date': nn[4]})
+            rows.append({'Text input': nn[1], 'Prediction': nn[2], 'Validated value': nn[3], 'Time': nn[4]})
 
         data = {
             'data': rows
