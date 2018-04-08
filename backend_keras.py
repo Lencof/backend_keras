@@ -8,6 +8,7 @@ import numpy
 import re
 import pickle
 from langdetect import detect
+from langdetect.lang_detect_exception import LangDetectException
 
 
 def load_obj(name):
@@ -107,9 +108,13 @@ class Predict(Resource):
 
 class ValidPredict(Resource):
     def get(self, text):
+        text = str(text)
         if len(text) != 0:
             ret = predict_sentence(text)
-            valid = detect(text)
+            try:
+                valid = detect(text)
+            except LangDetectException:
+                valid = 'undefinied language'
 
             result = {'data': {
                 'language': ret,
@@ -122,8 +127,6 @@ class ValidPredict(Resource):
                 "insert into prediction (text, predicted, actual) VALUES ('{0}', '{1}', '{2}')".format(process_sentence(text), ret,
                                                                                                        to_long_lang(
                                                                                                            valid)))
-
-
         else:
             result = {
                 'data': 'no text'
